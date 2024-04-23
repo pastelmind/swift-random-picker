@@ -21,8 +21,12 @@ struct SwiftRandomPicker: ParsableCommand {
     mutating func run() throws {
         let tokens = try parseTokens()
         let entries = try parseEntries(tokens: tokens)
-        let name = try pickRandomEntry(entries: entries)
-        print(name)
+        let (name, quality) = try pickRandomEntry(entries: entries)
+
+        let total = getTotalChance(entries: entries)
+        let chance = quality / total
+        let chancePercent = String(format: "%.3f%", chance * 100)
+        print("\(name) (\(chancePercent)% chance)")
     }
 
     private func parseTokens() throws -> [Token] {
@@ -108,7 +112,7 @@ struct SwiftRandomPicker: ParsableCommand {
         entries.reduce(0) { $0 + $1.quality }
     }
 
-    private func pickRandomEntry(entries: [Entry]) throws -> String {
+    private func pickRandomEntry(entries: [Entry]) throws -> Entry {
         guard entries.count > 0 else {
             throw ValidationError("No entries to select!")
         }
@@ -121,10 +125,10 @@ struct SwiftRandomPicker: ParsableCommand {
         let value = Double.random(in: 0.0 ..< total)
 
         var cumulativeQuality = 0.0
-        for (name, quality) in entries {
-            cumulativeQuality += quality
+        for entry in entries {
+            cumulativeQuality += entry.quality
             if value < cumulativeQuality {
-                return name
+                return entry
             }
         }
 
