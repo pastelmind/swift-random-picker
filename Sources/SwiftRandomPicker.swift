@@ -104,12 +104,16 @@ struct SwiftRandomPicker: ParsableCommand {
         return items
     }
 
+    private func getTotalChance(entries: [Entry]) -> Double {
+        entries.reduce(0) { $0 + $1.quality }
+    }
+
     private func pickRandomEntry(entries: [Entry]) throws -> String {
         guard entries.count > 0 else {
             throw ValidationError("No entries to select!")
         }
 
-        let total = entries.reduce(0) { $0 + $1.quality }
+        let total = getTotalChance(entries: entries)
         guard total > 0 else {
             throw ValidationError("Sum of all qualities must be greater than 0")
         }
